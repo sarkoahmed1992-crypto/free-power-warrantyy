@@ -18,17 +18,409 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen font-sans p-4">
+
     <div class="max-w-2xl mx-auto space-y-6">
+        
+        <!--سەری ئەپەکە-->
         <header class="bg-slate-800 border border-slate-700 p-5 rounded-2xl shadow-xl flex justify-between items-center">
             <div>
-                <h1 class="text-xl font-bold text-amber-400">فری پاوەر (FREE POWER)</h1>
-                <p class="text-xs text-slate-400">بۆ فرۆشتنی کاڵای ووزەی خۆر</p>
+                <h1 id="headerShopName" class="text-xl font-bold text-amber-400">فری پاوەر (FREE POWER)</h1>
+                <p id="headerShopDesc" class="text-xs text-slate-400">بۆ فرۆشتنی کاڵای ووزەی خۆر</p>
             </div>
+            <button onclick="openSettings()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-2 rounded-xl text-xs transition flex items-center gap-1">
+                ⚙️ ڕێکخستن
+            </button>
         </header>
-        <div class="bg-slate-800 border border-slate-700 p-5 rounded-2xl shadow-xl text-center space-y-3">
-            <h2 class="text-base font-bold text-emerald-400">✅ سیستەمی زەمان بە سەرکەوتوویی کار دەکات!</h2>
-            <p class="text-xs text-slate-300">فایلی سەرەکی بە سەرکەوتوویی بەرز کرایەوە.</p>
+
+        <!--بەشی کامێرا و سکانکردن-->
+        <div class="bg-slate-800 border border-slate-700 p-5 rounded-2xl shadow-xl space-y-4">
+            <h2 class="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                📷 سکانکردنی بارکۆد بە کامێرا
+            </h2>
+            <div class="flex gap-2">
+                <button onclick="startScanner()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-3 px-4 rounded-xl font-medium transition shadow-lg flex justify-center items-center gap-2">
+                    <span>🔴 دەستپێکردنی کامێرا</span>
+                </button>
+                <button onclick="stopScanner()" class="bg-rose-600 hover:bg-rose-500 text-white py-3 px-4 rounded-xl font-medium transition shadow-lg">
+                    وەستاندن
+                </button>
+            </div>
+            <div id="reader" class="w-full rounded-xl overflow-hidden bg-slate-900"></div>
+            
+            <button onclick="testBarcode()" class="w-full bg-slate-700 hover:bg-slate-600 text-amber-300 text-xs py-2 rounded-lg border border-slate-600">
+                ⚡ لێرە کلیک بکە بۆ تاقیکردنەوەی بارکۆدی نموونەیی
+            </button>
+        </div>
+
+        <!--فۆڕمی تۆمارکردنی زەمانی نوێ-->
+        <div class="bg-slate-800 border border-slate-700 p-5 rounded-2xl shadow-xl space-y-4">
+            <h2 class="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                📝 تۆمارکردنی زەمانی نوێ
+            </h2>
+            
+            <form id="warrantyForm" onsubmit="saveWarranty(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">ژمارەی بارکۆد (Barcode / SN):</label>
+                    <input type="text" id="barcodeInput" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-amber-400" placeholder="بارکۆد سکان بکە یان لێرە بنووسە...">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">ناوی کڕیار:</label>
+                        <input type="text" id="customerName" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-amber-400" placeholder="ناوی کڕیار...">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">مۆبایلی کڕیار (بۆ وەتسئەپ):</label>
+                        <input type="tel" id="customerPhone" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-amber-400" placeholder="0770XXXXXXX">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">جۆری زەمان / ماوە:</label>
+                        <select id="warrantyPeriod" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-amber-400">
+                            <option value="6">٦ مانگ زەمان</option>
+                            <option value="12" selected>١ ساڵ (١٢ مانگ)</option>
+                            <option value="24">٢ ساڵ (٢٤ مانگ)</option>
+                            <option value="36">٣ ساڵ (٣٦ مانگ)</option>
+                            <option value="60">٥ ساڵ زەمان</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">بەرواری دەرچوون:</label>
+                        <input type="date" id="issueDate" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-amber-400">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">تێبینی (جۆری ئینڤێرتەر / ڤۆڵتیە / مۆدێل):</label>
+                    <input type="text" id="notes" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-amber-400" placeholder="بۆ نموونە: Deye 8kW Hybrid Inverter">
+                </div>
+
+                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 px-4 rounded-xl transition shadow-lg">
+                    💾 تۆمارکردنی زەمان و دروستکردنی پسوولە
+                </button>
+            </form>
+        </div>
+
+        <!--بەشی گەڕان بەدوای بارکۆددا-->
+        <div class="bg-slate-800 border border-slate-700 p-5 rounded-2xl shadow-xl space-y-3">
+            <h2 class="text-sm font-semibold text-slate-300">🔍 پشکنینی خێرای زەمانی کاڵا</h2>
+            <div class="flex gap-2">
+                <input type="text" id="searchInput" oninput="searchWarranty()" placeholder="ژمارەی بارکۆد بنووسە بۆ پشکنین..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-white text-sm focus:outline-none focus:border-amber-400">
+            </div>
+            <div id="searchResult" class="text-xs text-slate-400"></div>
+        </div>
+
+        <!--لیستی مەوادە تۆمارکراوەکان-->
+        <div class="bg-slate-800 border border-slate-700 p-5 rounded-2xl shadow-xl space-y-4">
+            <h2 class="text-sm font-semibold text-slate-300">📦 دوایین مەوادە دەرچووەکان</h2>
+            <div id="warrantiesList" class="space-y-3 max-h-96 overflow-y-auto"></div>
         </div>
     </div>
+
+    <!-- پەنجەرەی پسوولەی فەرمی -->
+    <div id="invoiceModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white text-slate-900 rounded-2xl max-w-md w-full p-6 space-y-6 shadow-2xl relative" id="invoiceContent">
+            <div class="text-center border-b border-slate-200 pb-4 space-y-1">
+                <div class="inline-block bg-amber-500 text-slate-950 px-3 py-1 rounded-full text-xs font-bold mb-1">پسوولەی فەرمی زەمان</div>
+                <h3 id="invShopName" class="text-lg font-black text-slate-900">فری پاوەر (FREE POWER)</h3>
+                <p id="invShopDesc" class="text-xs text-slate-600">بۆ فرۆشتنی کاڵای ووزەی خۆر</p>
+                <p id="invShopPhone" class="text-xs text-slate-500 mt-1">تەلەفۆن: 07700397058</p>
+            </div>
+
+            <div class="space-y-3 text-xs bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <div class="flex justify-between border-b border-slate-200 pb-2">
+                    <span class="text-slate-500">ناوی کڕیار:</span>
+                    <span id="invCustomer" class="font-bold text-slate-800">-</span>
+                </div>
+                <div class="flex justify-between border-b border-slate-200 pb-2">
+                    <span class="text-slate-500">جۆری مەواد / تێبینی:</span>
+                    <span id="invNotes" class="font-bold text-slate-800">-</span>
+                </div>
+                <div class="flex justify-between border-b border-slate-200 pb-2">
+                    <span class="text-slate-500">ژمارەی بارکۆد:</span>
+                    <span id="invBarcode" class="font-mono font-bold text-slate-800">-</span>
+                </div>
+                <div class="flex justify-between border-b border-slate-200 pb-2">
+                    <span class="text-slate-500">بەرواری دەرچوون:</span>
+                    <span id="invDate" class="font-bold text-slate-800">-</span>
+                </div>
+                <div class="flex justify-between border-b border-slate-200 pb-2">
+                    <span class="text-slate-500">ماوەی زەمان:</span>
+                    <span id="invPeriod" class="font-bold text-emerald-700">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">بەرواری کۆتایی زەمان:</span>
+                    <span id="invExpiry" class="font-bold text-rose-700">-</span>
+                </div>
+            </div>
+
+            <div class="text-center space-y-2 pt-2">
+                <div class="bg-slate-900 text-white font-mono text-lg py-2 px-4 rounded-lg tracking-widest" id="invBarcodeBox">
+                    *BARCODE*
+                </div>
+                <p class="text-[10px] text-slate-400">ئەم پسوولەیە بە هەموو مەرج و مافەکانەوە پشتڕاستکراوەتەوە.</p>
+            </div>
+
+            <div class="flex justify-between items-center pt-4 border-t border-slate-200 text-xs">
+                <div>
+                    <span class="font-bold text-slate-700 block">واژۆی فرۆشیار:</span>
+                    <div class="h-8"></div>
+                </div>
+                <div>
+                    <span class="font-bold text-slate-700 block">واژۆ / تێبینی کڕیار:</span>
+                    <div class="h-8"></div>
+                </div>
+            </div>
+
+            <div class="flex gap-2 pt-4">
+                <button onclick="downloadInvoiceImage()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 px-3 rounded-xl text-xs font-bold transition">
+                    📥 داگرتنی وێنەی پسوولە
+                </button>
+                <button onclick="sendWhatsAppModal()" class="flex-1 bg-green-600 hover:bg-green-500 text-white py-2.5 px-3 rounded-xl text-xs font-bold transition">
+                    💬 وەتسئەپ
+                </button>
+                <button onclick="closeInvoice()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 py-2.5 px-3 rounded-xl text-xs font-bold">
+                    داخستن
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- پەنجەرەی ڕێکخستنی کۆمپانیا -->
+    <div id="settingsModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 text-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
+            <h3 class="text-base font-bold text-amber-400">⚙️ ڕێکخستنی زانیارییەکانی کۆمپانیا</h3>
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-slate-400 mb-1">ناوی کۆمپانیا / پێشانگا:</label>
+                    <input type="text" id="setShopName" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white" value="فری پاوەر (FREE POWER)">
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">وەسفی کار (پیشە):</label>
+                    <input type="text" id="setShopDesc" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white" value="بۆ فرۆشتنی کاڵای ووزەی خۆر">
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">ژمارەی تەلەفۆن:</label>
+                    <input type="text" id="setShopPhone" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white" value="07700397058">
+                </div>
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button onclick="saveSettings()" class="flex-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2.5 rounded-xl text-xs">پاشەکەوتکردن</button>
+                <button onclick="closeSettings()" class="bg-slate-700 hover:bg-slate-600 text-white py-2.5 px-3 rounded-xl text-xs">پاشگەزبوونەوە</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let html5QrCode = null;
+        let shopSettings = JSON.parse(localStorage.getItem('freePowerSettings')) || {
+            name: "فری پاوەر (FREE POWER)",
+            desc: "بۆ فرۆشتنی کاڵای ووزەی خۆر",
+            phone: "07700397058"
+        };
+
+        document.getElementById('headerShopName').innerText = shopSettings.name;
+        document.getElementById('headerShopDesc').innerText = shopSettings.desc;
+        document.getElementById('issueDate').valueAsDate = new Date();
+
+        function startScanner() {
+            const readerDiv = document.getElementById('reader');
+            readerDiv.style.display = 'block';
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("reader");
+            }
+            html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 150 } },
+                (decodedText) => {
+                    document.getElementById('barcodeInput').value = decodedText;
+                    stopScanner();
+                    checkExistingBarcode(decodedText);
+                },
+                (errorMessage) => {}
+            ).catch(err => {
+                alert("نەتوانرا کامێرا بکرێتەوە. تکایە دڵنیابە لە ڕێگەپێدانی کامێرا.");
+            });
+        }
+
+        function stopScanner() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => {
+                    document.getElementById('reader').style.display = 'none';
+                }).catch(err => console.log(err));
+            } else {
+                document.getElementById('reader').style.display = 'none';
+            }
+        }
+
+        function testBarcode() {
+            const randomCode = 'FP-' + Math.floor(100000 + Math.random() * 900000);
+            document.getElementById('barcodeInput').value = randomCode;
+            checkExistingBarcode(randomCode);
+        }
+
+        function checkExistingBarcode(code) {
+            let warranties = JSON.parse(localStorage.getItem('freePowerWarranties')) || [];
+            let found = warranties.find(w => w.barcode === code);
+            if (found) {
+                alert(`⚠️ ئەم بارکۆدە پێشتر بۆ (${found.customer}) تۆمار کراوە لە بەرواری ${found.date}!`);
+            }
+        }
+
+        function saveWarranty(event) {
+            event.preventDefault();
+            const barcode = document.getElementById('barcodeInput').value.trim();
+            const customer = document.getElementById('customerName').value.trim();
+            const phone = document.getElementById('customerPhone').value.trim();
+            const period = parseInt(document.getElementById('warrantyPeriod').value);
+            const date = document.getElementById('issueDate').value;
+            const notes = document.getElementById('notes').value.trim();
+
+            let issueDateObj = new Date(date);
+            issueDateObj.setMonth(issueDateObj.getMonth() + period);
+            let expiryDate = issueDateObj.toISOString().split('T')[0];
+
+            let newWarranty = { barcode, customer, phone, period, date, expiryDate, notes };
+            let warranties = JSON.parse(localStorage.getItem('freePowerWarranties')) || [];
+            warranties = warranties.filter(w => w.barcode !== barcode);
+            warranties.unshift(newWarranty);
+            localStorage.setItem('freePowerWarranties', JSON.stringify(warranties));
+
+            document.getElementById('warrantyForm').reset();
+            document.getElementById('issueDate').valueAsDate = new Date();
+            loadWarrantiesList();
+            showInvoice(newWarranty);
+        }
+
+        function loadWarrantiesList() {
+            let warranties = JSON.parse(localStorage.getItem('freePowerWarranties')) || [];
+            let listContainer = document.getElementById('warrantiesList');
+            listContainer.innerHTML = '';
+
+            if (warranties.length === 0) {
+                listContainer.innerHTML = '<p class="text-xs text-slate-500 text-center py-4">هێشتا هیچ مەوادێک تۆمار نەکراوە.</p>';
+                return;
+            }
+
+            warranties.forEach(w => {
+                let card = document.createElement('div');
+                card.className = 'bg-slate-900 border border-slate-700 p-3 rounded-xl flex justify-between items-center text-xs';
+                card.innerHTML = `
+                    <div class="space-y-1">
+                        <div class="font-bold text-amber-400">${w.customer} <span class="text-slate-400 font-normal">(${w.notes || 'ئینڤێرتەر'})</span></div>
+                        <div class="text-slate-400 font-mono">بارکۆد: ${w.barcode}</div>
+                        <div class="text-slate-500">زەمان: ${w.period} مانگ (تاکو ${w.expiryDate})</div>
+                    </div>
+                    <div class="flex gap-1.5">
+                        <button onclick='showInvoice(${JSON.stringify(w)})' class="bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 px-2.5 py-1.5 rounded-lg transition font-medium">📄 پسوولە</button>
+                        <button onclick='sendWhatsApp("${w.customer}", "${w.barcode}", "${w.period}", "${w.expiryDate}", "${w.phone}")' class="bg-green-600/20 hover:bg-green-600 text-green-300 hover:text-white px-2.5 py-1.5 rounded-lg transition">💬</button>
+                    </div>
+                `;
+                listContainer.appendChild(card);
+            });
+        }
+
+        function searchWarranty() {
+            let query = document.getElementById('searchInput').value.trim().toLowerCase();
+            let resultDiv = document.getElementById('searchResult');
+            if (!query) {
+                resultDiv.innerHTML = '';
+                return;
+            }
+
+            let warranties = JSON.parse(localStorage.getItem('freePowerWarranties')) || [];
+            let found = warranties.filter(w => w.barcode.toLowerCase().includes(query) || w.customer.toLowerCase().includes(query));
+
+            if (found.length === 0) {
+                resultDiv.innerHTML = '<span class="text-rose-400">هیچ زانیارییەک نەدۆزرایەوە بەم بارکۆدە.</span>';
+                return;
+            }
+
+            let html = '<div class="space-y-2 mt-2">';
+            found.forEach(w => {
+                html += `<div class="bg-slate-900 p-2.5 rounded-lg border border-slate-700 flex justify-between items-center">
+                    <div>
+                        <span class="font-bold text-amber-300">${w.customer}</span> - <span class="font-mono text-slate-300">${w.barcode}</span><br>
+                        <span class="text-[10px] text-slate-400">تێبینی: ${w.notes || 'بێ تێبینی'} | زەمان تا: ${w.expiryDate}</span>
+                    </div>
+                    <button onclick='showInvoice(${JSON.stringify(w)})' class="bg-amber-500 text-slate-950 px-2 py-1 rounded text-[10px] font-bold">پسوولە</button>
+                </div>`;
+            });
+            html += '</div>';
+            resultDiv.innerHTML = html;
+        }
+
+        function showInvoice(w) {
+            document.getElementById('invShopName').innerText = shopSettings.name;
+            document.getElementById('invShopDesc').innerText = shopSettings.desc;
+            document.getElementById('invShopPhone').innerText = "تەلەفۆن: " + shopSettings.phone;
+            
+            document.getElementById('invCustomer').innerText = w.customer;
+            document.getElementById('invNotes').innerText = w.notes || 'ئینڤێرتەر / مۆاد';
+            document.getElementById('invBarcode').innerText = w.barcode;
+            document.getElementById('invBarcodeBox').innerText = "||| | |||| || " + w.barcode;
+            document.getElementById('invDate').innerText = w.date;
+            document.getElementById('invPeriod').innerText = w.period + " مانگ";
+            document.getElementById('invExpiry').innerText = w.expiryDate;
+
+            document.getElementById('invoiceModal').classList.remove('hidden');
+        }
+
+        function closeInvoice() {
+            document.getElementById('invoiceModal').classList.add('hidden');
+        }
+
+        function downloadInvoiceImage() {
+            const invoiceElement = document.getElementById('invoiceContent');
+            html2canvas(invoiceElement, { scale: 2 }).then(canvas => {
+                let link = document.createElement('a');
+                link.download = 'Warranty-' + document.getElementById('invBarcode').innerText + '.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+
+        function sendWhatsApp(customer, barcode, period, expiry, phone) {
+            let msg = `سڵاو بەڕێز ${customer}؛\nسوپاس بۆ مامەڵەکردن لەگەڵ ${shopSettings.name}.\n\n📦 زانیاری زەمانی ئینڤێرتەر / مۆاد:\n- ژمارەی بارکۆد: ${barcode}\n- ماوەی زەمان: ${period} مانگ\n- بەرواری کۆتایی زەمان: ${expiry}\n\nتکایە ئەم نامەیە یان پسوولەکەی لای خۆت بپارێزە.`;
+            let url = `https://wa.me/${phone ? phone : ''}?text=${encodeURIComponent(msg)}`;
+            window.open(url, '_blank');
+        }
+
+        function sendWhatsAppModal() {
+            let customer = document.getElementById('invCustomer').innerText;
+            let barcode = document.getElementById('invBarcode').innerText;
+            let period = document.getElementById('invPeriod').innerText;
+            let expiry = document.getElementById('invExpiry').innerText;
+            sendWhatsApp(customer, barcode, period, expiry, '');
+        }
+
+        function openSettings() {
+            document.getElementById('setShopName').value = shopSettings.name;
+            document.getElementById('setShopDesc').value = shopSettings.desc;
+            document.getElementById('setShopPhone').value = shopSettings.phone;
+            document.getElementById('settingsModal').classList.remove('hidden');
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.add('hidden');
+        }
+
+        function saveSettings() {
+            shopSettings.name = document.getElementById('setShopName').value;
+            shopSettings.desc = document.getElementById('setShopDesc').value;
+            shopSettings.phone = document.getElementById('setShopPhone').value;
+            localStorage.setItem('freePowerSettings', JSON.stringify(shopSettings));
+            document.getElementById('headerShopName').innerText = shopSettings.name;
+            document.getElementById('headerShopDesc').innerText = shopSettings.desc;
+            closeSettings();
+            alert('گۆڕانکارییەکان بە سەرکەوتوویی پاشەکەوت کران!');
+        }
+
+        window.onload = function() {
+            loadWarrantiesList();
+        }
+    </script>
 </body>
 </html>
