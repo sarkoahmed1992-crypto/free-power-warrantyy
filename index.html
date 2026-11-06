@@ -15,8 +15,6 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen font-sans p-4">
 
@@ -157,7 +155,7 @@
                 </div>
             </div>
 
-            <!-- مەرجەکانی زەمان (ئەو دەقەی داوات کردبوو) -->
+            <!-- مەرجەکانی زەمان -->
             <div class="bg-amber-50 border border-amber-200 p-2.5 rounded-xl text-[10px] text-slate-700 space-y-1">
                 <p>• لە کاتی گەڕاندنەوەی کاڵا پێویستە ئەم پسوولەیە لەبیت .. بە پێچەوانەوە مافی گەڕاندنەوەت نییە.</p>
                 <p>• زەمانەتی باتری لیسیۆم ٥ ساڵ دەبێت لە شوێنی فێنک بێت.</p>
@@ -185,16 +183,13 @@
             </div>
 
             <div class="grid grid-cols-2 gap-2 pt-2">
-                <button onclick="downloadInvoiceImage()" class="bg-emerald-600 hover:bg-emerald-500 text-white py-2 px-2 rounded-xl text-xs font-bold transition shadow">
-                    📥 داگرتنی وێنە
-                </button>
-                <button onclick="downloadInvoicePDF()" class="bg-sky-600 hover:bg-sky-500 text-white py-2 px-2 rounded-xl text-xs font-bold transition shadow">
-                    📄 داگرتنی PDF
+                <button onclick="printInvoicePDF()" class="bg-sky-600 hover:bg-sky-500 text-white py-2 px-2 rounded-xl text-xs font-bold transition shadow">
+                    🖨️ چاپکردن / پاشەکەوتی PDF
                 </button>
                 <button onclick="sendWhatsAppModal()" class="bg-green-600 hover:bg-green-500 text-white py-2 px-2 rounded-xl text-xs font-bold transition shadow">
                     💬 ناردن بۆ وەتسئەپ
                 </button>
-                <button onclick="closeInvoice()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 py-2 px-2 rounded-xl text-xs font-bold">
+                <button onclick="closeInvoice()" class="col-span-2 bg-slate-200 hover:bg-slate-300 text-slate-800 py-2 px-2 rounded-xl text-xs font-bold">
                     داخستن
                 </button>
             </div>
@@ -385,35 +380,8 @@
             document.getElementById('invoiceModal').classList.add('hidden');
         }
 
-        function downloadInvoiceImage() {
-            const invoiceElement = document.getElementById('invoiceContent');
-            html2canvas(invoiceElement, { scale: 2, useCORS: true }).then(canvas => {
-                let link = document.createElement('a');
-                link.download = 'Warranty-' + document.getElementById('invBarcode').innerText + '.png';
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-            }).catch(err => {
-                alert("کێشەیەک ڕویدا لە داگرتنی وێنەکەدا.");
-            });
-        }
-
-        function downloadInvoicePDF() {
-            const invoiceElement = document.getElementById('invoiceContent');
-            html2canvas(invoiceElement, { scale: 2, useCORS: true }).then(canvas => {
-                const imgData = canvas.toDataURL('image/png');
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF('p', 'mm', 'a4');
-                const imgWidth = 190;
-                const pageHeight = 295;
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
-                let heightLeft = imgHeight;
-                let position = 10;
-
-                pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-                pdf.save('Warranty-' + document.getElementById('invBarcode').innerText + '.pdf');
-            }).catch(err => {
-                alert("نەتوانرا فایلی PDF دروست بکرێت.");
-            });
+        function printInvoicePDF() {
+            window.print();
         }
 
         function sendWhatsApp(customer, barcode, period, expiry, phone) {
