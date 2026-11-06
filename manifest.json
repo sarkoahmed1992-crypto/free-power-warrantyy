@@ -1,1 +1,21 @@
-https://cdn-icons-png.flaticon.com/512/3103/3103446.png
+{
+  "name": "FreePower Warranty System",
+  "short_name": "FreePower",
+  "description": "سیستەمی بارکۆد و زەمانی ئینڤێرتەر و کاڵای ووزەی خۆر - فری پاوەر",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#f59e0b",
+  "orientation": "portrait",
+  "dir": "rtl",
+  "lang": "ku",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3103/3103446.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
