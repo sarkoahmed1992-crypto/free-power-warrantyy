@@ -133,8 +133,8 @@
             <div class="bg-amber-50 border border-amber-200 p-2.5 rounded-xl text-[10px] text-slate-700 space-y-1.5 leading-relaxed">
                 <p class="font-bold text-slate-900 text-[11px]">مەرجەکانی زەمانەت:</p>
                 <p><b>پانێڵی شەمسی:</b> شکانی شووشە بەهۆی بەرد، تەرزە، باوبۆران، کەوتنەخوارەوە، یان هەر زەبرێکی دەرەکی یان ھۆتسپۆت بە ھۆی سێبەری تیژەوە، زەمانەت ناگرێتەوە.</p>
-                <p><b>ئینڤێرتەر:</b> سووتان بەهۆی هەورەبرووسکە، بەرزی و نزمی نائاسایی کارەبای نیشتیمانی یان موەلیدە، چوونە ژوورەوەی ئاو و شێ، یان لێکردنەوەی لەزگەی زەمانەتی کۆمپانیا (کۆدی سیریال)، زەمانەت ناگرێتەوە.</p>
-                <p><b>پاتری:</b> ئاوسان یان تێکچوون بەهۆی گەرمای زۆری ژوورەوە، دابەزاندنی شەحن بۆ سفر بۆ ماوەیەکی درێژ، یان دەستکاریکردنی سێتینگی شەحن و دابەزاندن (BMS/Inverter Settings) لەلایەن کڕیارەوە، زەمانەت ناگرێتەوە.</p>
+                <p><b>ئینڤێرتەر:</b> سووتان بەهۆی هەورەبرووسکە، بەرزی و نزمی نائاسایی کارەبا، چوونە ژوورەوەی ئاو و شێ، یان لێکردنەوەی لەزگەی زەمانەت (کۆدی سیریال)، زەمانەت ناگرێتەوە.</p>
+                <p><b>پاتری:</b> ئاوسان یان تێکچوون بەهۆی گەرمای زۆر، دابەزاندنی شەحن بۆ سفر بۆ ماوەیەکی درێژ، یان دەستکاریکردنی سێتینگ (BMS/Inverter Settings) لەلایەن کڕیارەوە، زەمانەت ناگرێتەوە.</p>
                 <p><b>مەرجی گشتی:</b> ئەگەر هەر کەسێک یان وەستایەکی تر جگە لە تیمی تەکنیکی خۆمان دەستکاری سیستەمەکە بکات، یان ئامێری زیادەی لەسەر ببەستێت کە لە توانای سیستەمەکە بەدەر بێت (Overload)، زەمانەت نامێنێت.</p>
             </div>
 
@@ -229,7 +229,6 @@
             }
         });
 
-        let qr = null;
         async function scanFromPhoto(input) {
             const file = input.files && input.files[0];
             if (!file) return;
@@ -237,10 +236,6 @@
             msg.className = 'text-[10px] text-amber-300 mt-1';
             msg.innerText = '⏳ دەخوێنرێتەوە...';
             try {
-                if (!qr) qr = new Html5Qrcode('barcodeInput'); 
-                // بەکارهێنانی کتێبخانەکە بۆ خوێندنەوەی وێنە
-                const html5QrCode = new Html5Qrcode("barcodeInput");
-                // ڕێگای سادەتر بۆ خوێندنەوەی QR/Barcode لە وێنەدا
                 const decodedText = await Html5Qrcode.scanFile(file, true);
                 barcodeEl.value = decodedText;
                 msg.className = 'text-[10px] text-emerald-400 mt-1';
@@ -305,7 +300,7 @@
                 html += `<div class="bg-slate-900 p-2.5 rounded-lg border border-slate-700 flex justify-between items-center">
                     <div>
                         <span class="font-bold text-amber-300">${esc(w.customer)}</span> - <span class="font-mono text-slate-300">${esc(w.barcode)}</span><br>
-                        <span class="text-[10px] text-slate-400">تێبینی: ${esc(w.notes || 'بێ تێبینی')} | زەمان تا: ${esc(w.expiryDate)}</span>
+                        <span class="text-[10px] text-slate-400">تێبینی: ${esc(w.notes \vert{}\vert{} 'بێ تێبینی')} \vert{} زەمان تا: ${esc(w.expiryDate)}</span>
                     </div>
                     <button onclick="showInvoice(shownList[${i}])" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-2.5 py-1 rounded-lg text-[10px] font-bold">پسوولە</button>
                 </div>`;
@@ -330,138 +325,4 @@
             found.forEach((w, i) => {
                 html += `<div class="bg-slate-900 p-2.5 rounded-lg border border-slate-700 flex justify-between items-center">
                     <div>
-                        <span class="font-bold text-amber-300">${esc(w.customer)}</span> - <span class="font-mono text-slate-300">${esc(w.barcode)}</span><br>
-                        <span class="text-[10px] text-slate-400">تێبینی: ${esc(w.notes || 'بێ تێبینی')} | زەمان تا: ${esc(w.expiryDate)}</span>
-                    </div>
-                    <button onclick="showInvoice(shownList[${i}])" class="bg-amber-500 text-slate-950 px-2 py-1 rounded text-[10px] font-bold">پسوولە</button>
-                </div>`;
-            });
-            html += '</div>';
-            resultDiv.innerHTML = html;
-        }
-
-        function showInvoice(w) {
-            currentInvoice = w;
-            document.getElementById('invShopName').innerText = shopSettings.name;
-            document.getElementById('invShopDesc').innerText = shopSettings.desc;
-            document.getElementById('invShopPhone').innerText = "تەلەفۆن: " + shopSettings.phone;
-            document.getElementById('invCustomer').innerText = w.customer;
-            document.getElementById('invNotes').innerText = w.notes || 'ئینڤێرتەر / مەواد';
-            document.getElementById('invBarcode').innerText = w.barcode;
-            document.getElementById('invBarcodeBox').innerText = "||| | |||| || " + w.barcode;
-            document.getElementById('invDate').innerText = w.date;
-            document.getElementById('invPeriod').innerText = w.period + " مانگ";
-            document.getElementById('invExpiry').innerText = w.expiryDate;
-            openModal('invoiceModal');
-        }
-
-        function closeInvoice() { closeModal('invoiceModal'); focusBarcode(); }
-
-        async function buildPDF() {
-            if (typeof html2canvas === 'undefined' || !window.jspdf) {
-                throw new Error('کتێبخانەی PDF بار نەبووە.');
-            }
-            const el = document.getElementById('invoiceContent');
-            const canvas = await html2canvas(el, {
-                scale: 2,
-                backgroundColor: '#ffffff',
-                useCORS: true,
-                ignoreElements: (node) => node.hasAttribute && node.hasAttribute('data-no-pdf')
-            });
-            const { jsPDF } = window.jspdf;
-            const pdfW = 110; 
-            const pdfH = pdfW * canvas.height / canvas.width;
-            const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: [pdfW, pdfH] });
-            pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, pdfW, pdfH);
-            return pdf;
-        }
-
-        function pdfFileName() {
-            const code = currentInvoice ? currentInvoice.barcode.replace(/[^\w\-]+/g, '_') : 'warranty';
-            return 'warranty-' + code + '.pdf';
-        }
-
-        async function downloadPDF() {
-            const btn = document.getElementById('pdfBtn');
-            const old = btn.innerText;
-            btn.innerText = '⏳ تکایە...';
-            btn.disabled = true;
-            try {
-                const pdf = await buildPDF();
-                const blob = pdf.output('blob');
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = pdfFileName();
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                setTimeout(() => URL.revokeObjectURL(url), 60000);
-            } catch (e) {
-                alert('هەڵە لە دروستکردنی PDF: ' + e.message);
-            } finally {
-                btn.innerText = old;
-                btn.disabled = false;
-            }
-        }
-
-        function normalizePhone(p) {
-            let d = String(p || '').replace(/\D/g, '');
-            if (!d) return '';
-            if (d.startsWith('00')) d = d.slice(2);
-            else if (d.startsWith('0')) d = '964' + d.slice(1);
-            else if (!d.startsWith('964') && d.length <= 10) d = '964' + d;
-            return d;
-        }
-
-        function sendWhatsApp(w) {
-            const msg =
-`سڵاو بەڕێز ${w.customer}؛
-سوپاس بۆ مامەڵەکردن لەگەڵ ${shopSettings.name}.
-
-📦 زانیاری زەمانی ئینڤێرتەر / مەواد:
-- ژمارەی بارکۆد: ${w.barcode}
-- ماوەی زەمان: ${w.period} مانگ
-- بەرواری کۆتایی زەمان: ${w.expiryDate}
-
-📌 مەرجەکانی زەمانەت:
-- پانێڵی شەمسی: شکانی شووشە بەهۆی بەرد، تەرزە، باوبۆران، کەوتنەخوارەوە، یان هەر زەبرێکی دەرەکی یان هۆتسپۆت بە هۆی سێبەری تیژەوە، زەمانەت ناگرێتەوە.
-- ئینڤێرتەر: سووتان بەهۆی هەورەبرووسکە، بەرزی و نزمی نائاسایی کارەبا، چوونە ژوورەوەی ئاو و شێ، یان لێکردنەوەی لەزگەی زەمانەت (کۆدی سیریال)، زەمانەت ناگرێتەوە.
-- پاتری: ئاوسان یان تێکچوون بەهۆی گەرمای زۆر، دابەزاندنی شەحن بۆ سفر بۆ ماوەیەکی درێژ، یان دەستکاریکردنی سێتینگ (BMS/Inverter Settings) لەلایەن کڕیارەوە، زەمانەت ناگرێتەوە.
-- مەرجی گشتی: دەستکاریکردنی سیستەم لەلایەن کەسێکی تر جگە لە تیمی تەکنیکی ئێمە، یان بەستنی ئامێری زیادە (Overload)، زەمانەت نامێنێت.
-
-تکایە ئەم نامەیە لای خۆت بپارێزە.`;
-            const phone = normalizePhone(w.phone);
-            const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
-            const win = window.open(url, '_blank');
-            if (!win) window.location.href = url; 
-        }
-
-        function sendWhatsAppModal() {
-            if (currentInvoice) sendWhatsApp(currentInvoice);
-        }
-
-        function openSettings() {
-            document.getElementById('setShopName').value = shopSettings.name;
-            document.getElementById('setShopDesc').value = shopSettings.desc;
-            document.getElementById('setShopPhone').value = shopSettings.phone;
-            openModal('settingsModal');
-        }
-        function closeSettings() { closeModal('settingsModal'); }
-
-        function saveSettings() {
-            shopSettings.name = document.getElementById('setShopName').value;
-            shopSettings.desc = document.getElementById('setShopDesc').value;
-            shopSettings.phone = document.getElementById('setShopPhone').value;
-            localStorage.setItem('freePowerSettings', JSON.stringify(shopSettings));
-            document.getElementById('headerShopName').innerText = shopSettings.name;
-            document.getElementById('headerShopDesc').innerText = shopSettings.desc;
-            closeSettings();
-            alert('گۆڕانکارییەکان بە سەرکەوتوویی پاشەکەوت کران!');
-        }
-
-        window.onload = function () { loadWarrantiesList(); focusBarcode(); };
-    </script>
-    <p class="text-center text-[10px] text-slate-600 mt-6 pb-4">وەشانی 4 • کامێرا + PDF + وەتسئەپ</p>
-</body>
-</html>
+                        <span class="
