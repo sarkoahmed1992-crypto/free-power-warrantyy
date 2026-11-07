@@ -40,6 +40,17 @@
             </button>
         </header>
 
+        <!-- دوگمەی باکئەپ (بۆ ناردن بۆ تەلەگرام و گەڕاندنەوەی) -->
+        <div class="bg-slate-800 border border-slate-700 p-3 rounded-2xl shadow-xl flex gap-2">
+            <button onclick="exportBackup()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2 px-3 rounded-xl transition shadow flex items-center justify-center gap-1">
+                📥 داگرتنی باکئەپ (تەلەگرام)
+            </button>
+            <label class="flex-1 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold py-2 px-3 rounded-xl transition shadow flex items-center justify-center gap-1 cursor-pointer">
+                📤 هێنانی باکئەپ
+                <input type="file" accept=".json" class="hidden" onchange="importBackup(this)">
+            </label>
+        </div>
+
         <button onclick="testBarcode()" class="w-full bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs py-2 rounded-xl border border-slate-700">
             ⚡ تاقیکردنەوەی بارکۆدی نموونەیی
         </button>
@@ -261,6 +272,47 @@
             document.getElementById('notes').value = 'Deye 8kW Hybrid Inverter';
         }
 
+        // فەنکشنی باکئەپ (Export) بۆ تەلەگرام
+        function exportBackup() {
+            const data = localStorage.getItem('freePowerWarranties');
+            if (!data || JSON.parse(data).length === 0) {
+                alert('هیچ داتایەک نییە بۆ داگرتن!');
+                return;
+            }
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'freepower-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 10000);
+        }
+
+        // فەنکشنی هێنانی باکئەپ (Import)
+        function importBackup(input) {
+            const file = input.files && input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (Array.isArray(importedData)) {
+                        localStorage.setItem('freePowerWarranties', JSON.stringify(importedData));
+                        loadWarrantiesList();
+                        alert('✅ باکئەپەکە بە سەرکەوتوویی گەڕێنراوە ناو بەرنامە!');
+                    } else {
+                        alert('❌ فایلی باکئەپەکە هەڵەیە.');
+                    }
+                } catch (err) {
+                    alert('❌ ناتوانرێت فایلەکە بخوێنرێتەوە: ' + err.message);
+                }
+                input.value = '';
+            };
+            reader.readAsText(file);
+        }
+
         function saveWarranty(event) {
             event.preventDefault();
             const barcode = document.getElementById('barcodeInput').value.trim();
@@ -457,6 +509,6 @@
 
         window.onload = function () { loadWarrantiesList(); focusBarcode(); };
     </script>
-    <p class="text-center text-[10px] text-slate-600 mt-6 pb-4">وەشانی 4 • کامێرا + PDF + وەتسئەپ</p>
+    <p class="text-center text-[10px] text-slate-600 mt-6 pb-4">وەشانی 5 • کامێرا + PDF + وەتسئەپ + باکئەپ</p>
 </body>
 </html>
