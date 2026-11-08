@@ -56,17 +56,18 @@
         </button>
 
         <div class="bg-slate-800 border border-slate-700 p-5 rounded-2xl shadow-xl space-y-4">
-            <h2 class="text-sm font-semibold text-slate-300 flex items-center gap-2">📝 تۆمارکردنی زەمانی نوێ</h2>
+            <h2 id="formTitle" class="text-sm font-semibold text-slate-300 flex items-center gap-2">📝 تۆمارکردنی زەمانی نوێ</h2>
             
-            <!-- شوێنی پیشاندانی کامێرای ڕاستەوخۆ -->
+            <!-- شوێنی پیشاندانی کامێرای تۆمارکردن -->
             <div id="reader" class="w-full bg-slate-900 rounded-xl overflow-hidden hidden mb-3 border border-slate-700"></div>
 
             <form id="warrantyForm" onsubmit="saveWarranty(event)" class="space-y-4">
+                <input type="hidden" id="editIndex" value="">
                 <div>
                     <label class="block text-xs text-slate-400 mb-1">ژمارەی بارکۆد (Barcode / SN):</label>
                     <div class="relative flex gap-2">
                         <input type="text" id="barcodeInput" required autofocus autocomplete="off" dir="auto" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-amber-400" placeholder="بارکۆد بخوێنەرەوە یان لێرە بنووسە...">
-                        <button type="button" onclick="toggleCamera()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 rounded-xl flex items-center justify-center shadow cursor-pointer text-xs shrink-0 transition">
+                        <button type="button" onclick="toggleCamera('reader', 'barcodeInput', 'scanMsg')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 rounded-xl flex items-center justify-center shadow cursor-pointer text-xs shrink-0 transition">
                             📷 کامێرا
                         </button>
                     </div>
@@ -106,15 +107,27 @@
                     <input type="text" id="notes" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-amber-400" placeholder="بۆ نموونە: Deye 8kW Hybrid Inverter">
                 </div>
 
-                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 px-4 rounded-xl transition shadow-lg">
-                    💾 تۆمارکردنی زەمان و دروستکردنی پسوولە
-                </button>
+                <div class="flex gap-2">
+                    <button type="submit" id="submitBtn" class="flex-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 px-4 rounded-xl transition shadow-lg">
+                        💾 تۆمارکردنی زەمان و دروستکردنی پسوولە
+                    </button>
+                    <button type="button" id="cancelEditBtn" onclick="cancelEdit()" class="hidden bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-4 rounded-xl transition">
+                        پاشگەزبوونەوە
+                    </button>
+                </div>
             </form>
         </div>
 
         <div class="bg-slate-800 border border-slate-700 p-5 rounded-2xl shadow-xl space-y-3">
-            <h2 class="text-sm font-semibold text-slate-300">🔍 پشکنینی خێرای زەمانی کاڵا</h2>
-            <input type="text" id="searchInput" oninput="searchWarranty()" placeholder="ژمارەی بارکۆد یان ناوی کڕیار بنووسە..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-white text-sm focus:outline-none focus:border-amber-400">
+            <h2 class="text-sm font-semibold text-slate-300">🔍 پشکنینی خێرای زەمانی کاڵا بە بارکۆد یاخود ناو</h2>
+            <div class="relative flex gap-2">
+                <input type="text" id="searchInput" oninput="searchWarranty()" placeholder="ژمارەی بارکۆد یان ناوی کڕیار بنووسە..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-white text-sm focus:outline-none focus:border-amber-400">
+                <button type="button" onclick="toggleCamera('searchReader', 'searchInput', 'searchScanMsg')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 rounded-xl flex items-center justify-center shadow cursor-pointer text-xs shrink-0 transition">
+                    📷 کامێرا
+                </button>
+            </div>
+            <div id="searchScanMsg" class="text-[10px] text-slate-500"></div>
+            <div id="searchReader" class="w-full bg-slate-900 rounded-xl overflow-hidden hidden mb-3 border border-slate-700"></div>
             <div id="searchResult" class="text-xs text-slate-400"></div>
         </div>
 
@@ -206,8 +219,8 @@
     <script>
         let currentInvoice = null;   
         let shownList = [];          
-        let html5QrCode = null;
-        let isCameraRunning = false;
+        let activeScanner = null;
+        let activeScannerElId = null;
 
         const DEFAULT_SETTINGS = {
             name: "فری پاوەر (FREE POWER)",
@@ -245,20 +258,19 @@
             }
         });
 
-        // کارکردن و کوژاندنەوەی کامێرای ڕاستەوخۆ (Live Camera Scanner)
-        async function toggleCamera() {
-            const readerDiv = document.getElementById('reader');
-            const msg = document.getElementById('scanMsg');
+        // کامێرای ڕاستەوخۆ بۆ هەردوو بەش (تۆمارکردن و پشکنین)
+        async function toggleCamera(readerId, inputId, msgId) {
+            const readerDiv = document.getElementById(readerId);
+            const msg = document.getElementById(msgId);
+            const inputEl = document.getElementById(inputId);
 
-            if (isCameraRunning) {
-                if (html5QrCode) {
-                    await html5QrCode.stop();
-                    html5QrCode.clear();
-                }
-                readerDiv.classList.add('hidden');
-                isCameraRunning = false;
-                msg.innerText = 'کامێرا کوژایەوە.';
+            if (activeScanner && activeScannerElId === readerId) {
+                await stopActiveCamera();
                 return;
+            }
+
+            if (activeScanner) {
+                await stopActiveCamera();
             }
 
             readerDiv.classList.remove('hidden');
@@ -266,41 +278,49 @@
             msg.innerText = '⏳ کامێرا دەکرێتەوە...';
 
             try {
-                if (!html5QrCode) {
-                    html5QrCode = new Html5Qrcode("reader");
-                }
+                activeScanner = new Html5Qrcode(readerId);
+                activeScannerElId = readerId;
                 
-                await html5QrCode.start(
+                await activeScanner.start(
                     { facingMode: "environment" }, 
-                    {
-                        fps: 10,
-                        qrbox: { width: 250, height: 150 }
-                    },
-                    (decodedText) => {
-                        // کاتێک بارکۆد دەخوێنێتەوە
-                        barcodeEl.value = decodedText;
+                    { fps: 10, qrbox: { width: 250, height: 150 } },
+                    async (decodedText) => {
+                        inputEl.value = decodedText;
                         msg.className = 'text-[10px] text-emerald-400 mt-1';
                         msg.innerText = '✅ بارکۆد خوێنرایەوە: ' + decodedText;
-                        checkExistingBarcode(decodedText);
-                        document.getElementById('customerName').focus();
                         
-                        // کامێراکە دەکوژێنینەوە پاش خوێندنەوەی سەرکەوتوو
-                        html5QrCode.stop().then(() => {
-                            readerDiv.classList.add('hidden');
-                            isCameraRunning = false;
-                        }).catch(() => {});
+                        await stopActiveCamera();
+
+                        if (inputId === 'barcodeInput') {
+                            checkExistingBarcode(decodedText);
+                            document.getElementById('customerName').focus();
+                        } else if (inputId === 'searchInput') {
+                            searchWarranty();
+                        }
                     },
-                    (errorMessage) => {
-                        // هەڵەی خوێندنەوەی بێوچانی سڵایدی کامێرا فەرامۆش دەکرێت
-                    }
+                    () => {}
                 );
-                isCameraRunning = true;
                 msg.innerText = '📷 بارکۆد بخە بەردەم کامێرا...';
             } catch (err) {
                 readerDiv.classList.add('hidden');
-                isCameraRunning = false;
+                activeScanner = null;
+                activeScannerElId = null;
                 msg.className = 'text-[10px] text-rose-400 mt-1';
-                msg.innerText = '❌ ناتوانرێت دەست بە کامێرا بگات (دڵنیابە لە ڕێگەپێدان).';
+                msg.innerText = '❌ ناتوانرێت دەست بە کامێرا بگات.';
+            }
+        }
+
+        async function stopActiveCamera() {
+            if (activeScanner) {
+                try {
+                    await activeScanner.stop();
+                    activeScanner.clear();
+                } catch (e) {}
+                if (activeScannerElId) {
+                    document.getElementById(activeScannerElId).classList.add('hidden');
+                }
+                activeScanner = null;
+                activeScannerElId = null;
             }
         }
 
@@ -317,7 +337,7 @@
             document.getElementById('notes').value = 'Deye 8kW Hybrid Inverter';
         }
 
-        // فەنکشنی باکئەپ (Export) بۆ تەلەگرام
+        // باکئەپ (Export / Import)
         function exportBackup() {
             const data = localStorage.getItem('freePowerWarranties');
             if (!data || JSON.parse(data).length === 0) {
@@ -335,7 +355,6 @@
             setTimeout(() => URL.revokeObjectURL(url), 10000);
         }
 
-        // فەنکشنی هێنانی باکئەپ (Import)
         function importBackup(input) {
             const file = input.files && input.files[0];
             if (!file) return;
@@ -358,8 +377,10 @@
             reader.readAsText(file);
         }
 
+        // تۆمارکردن یان دەستکاری
         function saveWarranty(event) {
             event.preventDefault();
+            const editIndex = document.getElementById('editIndex').value;
             const barcode = document.getElementById('barcodeInput').value.trim();
             const customer = document.getElementById('customerName').value.trim();
             const phone = document.getElementById('customerPhone').value.trim();
@@ -373,15 +394,65 @@
 
             const newWarranty = { barcode, customer, phone, period, date, expiryDate, notes };
             let warranties = readJSON('freePowerWarranties', []);
-            warranties = warranties.filter(w => w.barcode !== barcode);
-            warranties.unshift(newWarranty);
-            localStorage.setItem('freePowerWarranties', JSON.stringify(warranties));
 
+            if (editIndex !== "") {
+                // نوێکردنەوەی زەمانی پێشوو
+                warranties[editIndex] = newWarranty;
+                document.getElementById('editIndex').value = "";
+                document.getElementById('formTitle').innerText = "📝 تۆمارکردنی زەمانی نوێ";
+                document.getElementById('submitBtn').innerText = "💾 تۆمارکردنی زەمان و دروستکردنی پسوولە";
+                document.getElementById('cancelEditBtn').classList.add('hidden');
+                alert('✅ گۆڕانکارییەکان بە سەرکەوتوویی پاشەکەوت کران!');
+            } else {
+                warranties = warranties.filter(w => w.barcode !== barcode);
+                warranties.unshift(newWarranty);
+                showInvoice(newWarranty);
+            }
+
+            localStorage.setItem('freePowerWarranties', JSON.stringify(warranties));
             document.getElementById('warrantyForm').reset();
             document.getElementById('issueDate').valueAsDate = new Date();
             loadWarrantiesList();
-            showInvoice(newWarranty);
             setTimeout(focusBarcode, 100);
+        }
+
+        // دەستکاریکردن (Edit)
+        function editWarranty(index) {
+            const warranties = readJSON('freePowerWarranties', []);
+            const w = warranties[index];
+            if (!w) return;
+
+            document.getElementById('editIndex').value = index;
+            document.getElementById('barcodeInput').value = w.barcode;
+            document.getElementById('customerName').value = w.customer;
+            document.getElementById('customerPhone').value = w.phone || '';
+            document.getElementById('warrantyPeriod').value = w.period;
+            document.getElementById('issueDate').value = w.date;
+            document.getElementById('notes').value = w.notes || '';
+
+            document.getElementById('formTitle').innerText = "✏️ دەستکاریکردنی زەمانی کاڵا";
+            document.getElementById('submitBtn').innerText = "🔄 نوێکردنەوەی زەمان";
+            document.getElementById('cancelEditBtn').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function cancelEdit() {
+            document.getElementById('warrantyForm').reset();
+            document.getElementById('editIndex').value = "";
+            document.getElementById('formTitle').innerText = "📝 تۆمارکردنی زەمانی نوێ";
+            document.getElementById('submitBtn').innerText = "💾 تۆمارکردنی زەمان و دروستکردنی پسوولە";
+            document.getElementById('cancelEditBtn').classList.add('hidden');
+            document.getElementById('issueDate').valueAsDate = new Date();
+        }
+
+        // سڕینەوە (Delete)
+        function deleteWarranty(index) {
+            if (confirm('ئایا دڵنیای لە سڕینەوەی ئەم زەمانە؟')) {
+                let warranties = readJSON('freePowerWarranties', []);
+                warranties.splice(index, 1);
+                localStorage.setItem('freePowerWarranties', JSON.stringify(warranties));
+                loadWarrantiesList();
+            }
         }
 
         function loadWarrantiesList() {
@@ -393,13 +464,17 @@
                 return;
             }
             let html = '';
-            warranties.slice(0, 10).forEach((w, i) => {
-                html += `<div class="bg-slate-900 p-2.5 rounded-lg border border-slate-700 flex justify-between items-center">
-                    <div>
+            warranties.slice(0, 15).forEach((w, i) => {
+                html += `<div class="bg-slate-900 p-2.5 rounded-lg border border-slate-700 flex justify-between items-center gap-2">
+                    <div class="overflow-hidden">
                         <span class="font-bold text-amber-300">${esc(w.customer)}</span> - <span class="font-mono text-slate-300">${esc(w.barcode)}</span><br>
                         <span class="text-[10px] text-slate-400">تێبینی: ${esc(w.notes || 'بێ تێبینی')} | زەمان تا: ${esc(w.expiryDate)}</span>
                     </div>
-                    <button onclick="showInvoice(shownList[${i}])" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-2.5 py-1 rounded-lg text-[10px] font-bold">پسوولە</button>
+                    <div class="flex gap-1 shrink-0">
+                        <button onclick="showInvoice(shownList[${i}])" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-2 py-1 rounded text-[10px] font-bold">پسوولە</button>
+                        <button onclick="editWarranty(${i})" class="bg-sky-600 hover:bg-sky-500 text-white px-2 py-1 rounded text-[10px]">✏️</button>
+                        <button onclick="deleteWarranty(${i})" class="bg-rose-600 hover:bg-rose-500 text-white px-2 py-1 rounded text-[10px]">🗑️</button>
+                    </div>
                 </div>`;
             });
             listDiv.innerHTML = html;
@@ -420,12 +495,14 @@
             }
             let html = '<div class="space-y-2 mt-2">';
             found.forEach((w, i) => {
-                html += `<div class="bg-slate-900 p-2.5 rounded-lg border border-slate-700 flex justify-between items-center">
-                    <div>
+                html += `<div class="bg-slate-900 p-2.5 rounded-lg border border-slate-700 flex justify-between items-center gap-2">
+                    <div class="overflow-hidden">
                         <span class="font-bold text-amber-300">${esc(w.customer)}</span> - <span class="font-mono text-slate-300">${esc(w.barcode)}</span><br>
                         <span class="text-[10px] text-slate-400">تێبینی: ${esc(w.notes || 'بێ تێبینی')} | زەمان تا: ${esc(w.expiryDate)}</span>
                     </div>
-                    <button onclick="showInvoice(shownList[${i}])" class="bg-amber-500 text-slate-950 px-2 py-1 rounded text-[10px] font-bold">پسوولە</button>
+                    <div class="flex gap-1 shrink-0">
+                        <button onclick="showInvoice(shownList[${i}])" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-2 py-1 rounded text-[10px] font-bold">پسوولە</button>
+                    </div>
                 </div>`;
             });
             html += '</div>';
@@ -554,6 +631,6 @@
 
         window.onload = function () { loadWarrantiesList(); focusBarcode(); };
     </script>
-    <p class="text-center text-[10px] text-slate-600 mt-6 pb-4">وەشانی 6 • کامێرای ڕاستەوخۆ + PDF + وەتسئەپ + باکئەپ</p>
+    <p class="text-center text-[10px] text-slate-600 mt-6 pb-4">وەشانی 7 • کامێرای دووانە + دەستکاری و سڕینەوە + PDF + وەتسئەپ + باکئەپ</p>
 </body>
 </html>
