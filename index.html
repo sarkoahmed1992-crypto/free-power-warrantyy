@@ -295,7 +295,7 @@
                             checkExistingBarcode(decodedText);
                             document.getElementById('customerName').focus();
                         } else if (inputId === 'searchInput') {
-                            searchWarranty();
+                            searchWarranty(); // لێرەدا پشکنینەکە ڕاستەوخۆ کار دەکات
                         }
                     },
                     () => {}
@@ -396,7 +396,6 @@
             let warranties = readJSON('freePowerWarranties', []);
 
             if (editIndex !== "") {
-                // نوێکردنەوەی زەمانی پێشوو
                 warranties[editIndex] = newWarranty;
                 document.getElementById('editIndex').value = "";
                 document.getElementById('formTitle').innerText = "📝 تۆمارکردنی زەمانی نوێ";
@@ -416,7 +415,6 @@
             setTimeout(focusBarcode, 100);
         }
 
-        // دەستکاریکردن (Edit)
         function editWarranty(index) {
             const warranties = readJSON('freePowerWarranties', []);
             const w = warranties[index];
@@ -445,7 +443,6 @@
             document.getElementById('issueDate').valueAsDate = new Date();
         }
 
-        // سڕینەوە (Delete)
         function deleteWarranty(index) {
             if (confirm('ئایا دڵنیای لە سڕینەوەی ئەم زەمانە؟')) {
                 let warranties = readJSON('freePowerWarranties', []);
@@ -490,7 +487,7 @@
             shownList = found;
 
             if (found.length === 0) {
-                resultDiv.innerHTML = '<span class="text-rose-400">هیچ زانیارییەک نەدۆزرایەوە.</span>';
+                resultDiv.innerHTML = '<span class="text-rose-400">هیچ زانیارییەک نەدۆزرایەوە بەم بارکۆدە.</span>';
                 return;
             }
             let html = '<div class="space-y-2 mt-2">';
@@ -631,6 +628,6 @@
 
         window.onload = function () { loadWarrantiesList(); focusBarcode(); };
     </script>
-    <p class="text-center text-[10px] text-slate-600 mt-6 pb-4">وەشانی 7 • کامێرای دووانە + دەستکاری و سڕینەوە + PDF + وەتسئەپ + باکئەپ</p>
+    <p class="text-center text-[10px] text-slate-600 mt-6 pb-4">وەشانی 8 • پشکنینی ڕاستەوخۆ + دەستکاری و سڕینەوە + PDF + وەتسئەپ</p>
 </body>
 </html>
