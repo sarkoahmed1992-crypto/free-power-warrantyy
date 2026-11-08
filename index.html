@@ -295,7 +295,8 @@
                             checkExistingBarcode(decodedText);
                             document.getElementById('customerName').focus();
                         } else if (inputId === 'searchInput') {
-                            searchWarranty(); // لێرەدا ڕاستەوخۆ گەڕانەکە ئەنجام دەدات
+                            // لێرەدا ڕاستەوخۆ بە قەبارەی تەواوی بارکۆدەکەی خوێنراوەوە دەگەڕێت
+                            searchWarrantyByText(decodedText);
                         }
                     },
                     () => {}
@@ -479,6 +480,15 @@
 
         function searchWarranty() {
             const query = document.getElementById('searchInput').value.trim().toLowerCase();
+            executeSearch(query);
+        }
+
+        function searchWarrantyByText(text) {
+            document.getElementById('searchInput').value = text;
+            executeSearch(text.trim().toLowerCase());
+        }
+
+        function executeSearch(query) {
             const resultDiv = document.getElementById('searchResult');
             if (!query) { resultDiv.innerHTML = ''; return; }
 
@@ -628,6 +638,6 @@
 
         window.onload = function () { loadWarrantiesList(); focusBarcode(); };
     </script>
-    <p class="text-center text-[10px] text-slate-600 mt-6 pb-4">وەشانی 9 • پشکنینی کامێرا ڕاستەوخۆ + دەستکاری و سڕینەوە + PDF</p>
+    <p class="text-center text-[10px] text-slate-600 mt-6 pb-4">وەشانی 10 • چارەسەرکردنی کێشەی گەڕانی کامێرا</p>
 </body>
 </html>
