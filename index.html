@@ -295,7 +295,7 @@
                             checkExistingBarcode(decodedText);
                             document.getElementById('customerName').focus();
                         } else if (inputId === 'searchInput') {
-                            searchWarranty(); // لێرەدا پشکنینەکە ڕاستەوخۆ کار دەکات
+                            searchWarranty(); // لێرەدا ڕاستەوخۆ گەڕانەکە ئەنجام دەدات
                         }
                     },
                     () => {}
@@ -480,7 +480,7 @@
         function searchWarranty() {
             const query = document.getElementById('searchInput').value.trim().toLowerCase();
             const resultDiv = document.getElementById('searchResult');
-            if (!query) { resultDiv.innerHTML = ''; loadWarrantiesList(); return; }
+            if (!query) { resultDiv.innerHTML = ''; return; }
 
             const all = readJSON('freePowerWarranties', []);
             const found = all.filter(w => w.barcode.toLowerCase().includes(query) || w.customer.toLowerCase().includes(query));
@@ -628,6 +628,6 @@
 
         window.onload = function () { loadWarrantiesList(); focusBarcode(); };
     </script>
-    <p class="text-center text-[10px] text-slate-600 mt-6 pb-4">وەشانی 8 • پشکنینی ڕاستەوخۆ + دەستکاری و سڕینەوە + PDF + وەتسئەپ</p>
+    <p class="text-center text-[10px] text-slate-600 mt-6 pb-4">وەشانی 9 • پشکنینی کامێرا ڕاستەوخۆ + دەستکاری و سڕینەوە + PDF</p>
 </body>
 </html>
